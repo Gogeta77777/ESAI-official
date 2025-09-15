@@ -4,13 +4,10 @@
   "description": "Ellerslie School AI Chat Application",
   "main": "index.html",
   "scripts": {
-    "start": "serve .",
-    "build": "echo 'No build process needed for static site'"
+    "start": "echo 'No server needed' && exit 0",
+    "build": "echo 'No build process needed' && exit 0"
   },
   "keywords": ["ai", "chat", "education"],
   "author": "Ellerslie School AI Team",
-  "license": "MIT",
-  "devDependencies": {
-    "serve": "^14.2.0"
-  }
+  "license": "MIT"
 }
