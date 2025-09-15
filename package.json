@@ -4,10 +4,13 @@
   "description": "Ellerslie School AI Chat Application",
   "main": "index.html",
   "scripts": {
-    "start": "deno run --allow-net --allow-read https://deno.land/std@0.168.0/http/file_server.ts .",
+    "start": "serve .",
     "build": "echo 'No build process needed for static site'"
   },
   "keywords": ["ai", "chat", "education"],
   "author": "Ellerslie School AI Team",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "serve": "^14.2.0"
+  }
 }
