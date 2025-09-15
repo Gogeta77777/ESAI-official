@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ellerslie School AI</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Header Section -->
+    <header>
+        <div class="logo-container">
+            <div class="logo">ES</div>
+            <div class="brand-name">Ellerslie School AI</div>
+        </div>
+        <button class="menu-toggle" style="display: none;">
+            <i class="fas fa-bars"></i>
+        </button>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        <!-- Authentication Section -->
+        <div class="auth-container" id="auth-container">
+            <!-- Login Form -->
+            <form class="auth-form" id="login-form">
+                <h2>Login to ESAI</h2>
+                <div class="form-group">
+                    <label for="login-username">Username</label>
+                    <input type="text" id="login-username" placeholder="Enter your username" required>
+                </div>
+                <div class="form-group">
+                    <label for="login-password">Password</label>
+                    <input type="password" id="login-password" placeholder="Enter your password" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Login</button>
+                <div class="auth-switch">
+                    Don't have an account? <a href="#" id="show-signup">Sign up</a>
+                </div>
+            </form>
+
+            <!-- Signup Form -->
+            <form class="auth-form" id="signup-form" style="display: none;">
+                <h2>Create an Account</h2>
+                <div class="form-group">
+                    <label for="signup-realname">Real Name</label>
+                    <input type="text" id="signup-realname" placeholder="Enter your real name" required>
+                </div>
+                <div class="form-group">
+                    <label for="signup-username">Username</label>
+                    <input type="text" id="signup-username" placeholder="Choose a username" required>
+                </div>
+                <div class="form-group">
+                    <label for="signup-password">Password</label>
+                    <input type="password" id="signup-password" placeholder="Create a password" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Sign Up</button>
+                <div class="auth-switch">
+                    Already have an account? <a href="#" id="show-login">Login</a>
+                </div>
+            </form>
+        </div>
+
+        <!-- Chat Interface -->
+        <div class="chat-container" id="chat-container">
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <div class="user-info">
+                    <div class="user-avatar" id="user-avatar">JD</div>
+                    <div class="user-details">
+                        <h3 id="user-realname">John Doe</h3>
+                        <p id="user-username">@johndoe</p>
+                    </div>
+                    <button class="logout-btn" id="logout-btn">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
+                </div>
+
+                <button class="new-chat-btn" id="new-chat-btn">
+                    <i class="fas fa-plus"></i> New Chat
+                </button>
+
+                <div class="chat-history" id="chat-history">
+                    <!-- Chat history items will be added here -->
+                </div>
+
+                <div class="model-selector">
+                    <label for="model-select">AI Model</label>
+                    <select id="model-select">
+                        <option value="ESAI-Alpha-1">ESAI-Alpha-1</option>
+                        <option value="ESAI-Alpha-2" disabled>
+                            <span class="model-option">
+                                <span>ESAI-Alpha-2</span>
+                                <span class="in-dev">In-development</span>
+                            </span>
+                        </option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Chat Main Area -->
+            <div class="chat-main">
+                <div class="chat-header">
+                    <i class="fas fa-robot" style="color: var(--primary);"></i>
+                    <h3>ESAI-Alpha-1</h3>
+                    <span class="model-badge">Active</span>
+                </div>
+
+                <div class="chat-messages" id="chat-messages">
+                    <!-- Messages will be added here -->
+                </div>
+
+                <div class="chat-input-container">
+                    <div class="chat-input-wrapper">
+                        <textarea class="chat-input" id="chat-input" placeholder="Type your message here..." rows="1"></textarea>
+                        <button class="send-btn" id="send-btn">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                    <button class="cancel-btn" id="cancel-btn">Cancel Response</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
