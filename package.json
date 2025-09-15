@@ -1,0 +1,16 @@
+{
+  "name": "ellerslie-school-ai",
+  "version": "1.0.0",
+  "description": "Ellerslie School AI Chat Application",
+  "main": "index.html",
+  "scripts": {
+    "start": "serve .",
+    "build": "echo 'No build process needed for static site'"
+  },
+  "keywords": ["ai", "chat", "education"],
+  "author": "Ellerslie School AI Team",
+  "license": "MIT",
+  "devDependencies": {
+    "serve": "^14.2.0"
+  }
+}
