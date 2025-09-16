@@ -1,3 +1,26 @@
+const express = require('express');
+const fetch = require('node-fetch');
+const fs = require('fs');
+const path = require('path');
+const app = express();
+app.use(express.json());
+
+const DATA_PATH = path.join(__dirname, 'saveData.json');
+
+function readData() {
+  try {
+    return JSON.parse(fs.readFileSync(DATA_PATH, 'utf8'));
+  } catch (e) {
+    return { users: [], chats: {} };
+  }
+}
+function writeData(data) {
+  fs.writeFileSync(DATA_PATH, JSON.stringify(data, null, 2));
+}
+
+// Serve the inlined frontend
+app.get('/', (req, res) => {
+  res.send(`
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -25,7 +48,231 @@ const express = require('express');
 const fetch = require('node-fetch');
 const app = express();
 app.use(express.json());
+const express = require('express');
+const fetch = require('node-fetch');
+const fs = require('fs');
+const path = require('path');
+const app = express();
+app.use(express.json());
 
+const DATA_PATH = path.join(__dirname, 'saveData.json');
+
+function readData() {
+    try {
+        return JSON.parse(fs.readFileSync(DATA_PATH, 'utf8'));
+    } catch (e) {
+        return { users: [], chats: {} };
+    }
+}
+function writeData(data) {
+    fs.writeFileSync(DATA_PATH, JSON.stringify(data, null, 2));
+}
+
+// Serve the inlined frontend
+app.get('/', (req, res) => {
+    res.send(`
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>ESAI Chat App</title>
+            <style>
+                body { font-family: Arial, sans-serif; background: #f4f4f4; margin: 0; }
+                .container { max-width: 600px; margin: 40px auto; background: #fff; padding: 24px; border-radius: 8px; box-shadow: 0 2px 8px #0001; }
+                h1 { text-align: center; }
+                #chat { height: 300px; overflow-y: auto; border: 1px solid #ddd; padding: 12px; margin-bottom: 16px; background: #fafafa; border-radius: 6px; }
+                .msg { margin-bottom: 12px; }
+                .msg.user { text-align: right; color: #007bff; }
+                .msg.ai { text-align: left; color: #333; }
+                #input { width: 80%; padding: 8px; border-radius: 4px; border: 1px solid #ccc; }
+                #send { padding: 8px 16px; border-radius: 4px; border: none; background: #007bff; color: #fff; cursor: pointer; }
+                #send:disabled { background: #aaa; }
+                .auth { margin-bottom: 16px; }
+                .hidden { display: none; }
+                .error { color: red; margin-bottom: 8px; }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <h1>ESAI Chat App</h1>
+                <div id="model-info" style="margin-bottom:12px; font-size:0.95em; color:#555;">
+                    Model: <b>ESAI-Alpha-1</b> (Gemini, by ESAI, released 2025, start of term 4)
+                </div>
+                <div class="auth">
+                    <div id="signup-box">
+                        <h3>Sign Up</h3>
+                        <div class="error" id="signup-error"></div>
+                        <input id="signup-name" placeholder="Real Name" /> <br />
+                        <input id="signup-username" placeholder="Username" /> <br />
+                        <input id="signup-password" type="password" placeholder="Password" /> <br />
+                        <button id="signup-btn">Sign Up</button>
+                        <span style="margin-left:8px; font-size:0.9em;">Already have an account? <a href="#" id="show-login">Login</a></span>
+                    </div>
+                    <div id="login-box" class="hidden">
+                        <h3>Login</h3>
+                        <div class="error" id="login-error"></div>
+                        <input id="login-username" placeholder="Username" /> <br />
+                        <input id="login-password" type="password" placeholder="Password" /> <br />
+                        <button id="login-btn">Login</button>
+                        <span style="margin-left:8px; font-size:0.9em;">No account? <a href="#" id="show-signup">Sign Up</a></span>
+                    </div>
+                </div>
+                <div id="chat-ui" class="hidden">
+                    <div id="chat"></div>
+                    <input id="input" placeholder="Type your message..." />
+                    <button id="send">Send</button>
+                </div>
+            </div>
+            <script>
+                // Auth UI logic
+                const signupBox = document.getElementById('signup-box');
+                const loginBox = document.getElementById('login-box');
+                const chatUI = document.getElementById('chat-ui');
+                document.getElementById('show-login').onclick = () => {
+                    signupBox.classList.add('hidden');
+                    loginBox.classList.remove('hidden');
+                };
+                document.getElementById('show-signup').onclick = () => {
+                    loginBox.classList.add('hidden');
+                    signupBox.classList.remove('hidden');
+                };
+                // Sign Up
+                document.getElementById('signup-btn').onclick = async () => {
+                    const name = document.getElementById('signup-name').value.trim();
+                    const username = document.getElementById('signup-username').value.trim();
+                    const password = document.getElementById('signup-password').value;
+                    document.getElementById('signup-error').textContent = '';
+                    if (!name || !username || !password) {
+                        document.getElementById('signup-error').textContent = 'All fields required.';
+                        return;
+                    }
+                    const res = await fetch('/api/signup', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ name, username, password })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        signupBox.classList.add('hidden');
+                        chatUI.classList.remove('hidden');
+                    } else {
+                        document.getElementById('signup-error').textContent = data.error || 'Sign up failed.';
+                    }
+                };
+                // Login
+                document.getElementById('login-btn').onclick = async () => {
+                    const username = document.getElementById('login-username').value.trim();
+                    const password = document.getElementById('login-password').value;
+                    document.getElementById('login-error').textContent = '';
+                    if (!username || !password) {
+                        document.getElementById('login-error').textContent = 'All fields required.';
+                        return;
+                    }
+                    const res = await fetch('/api/login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username, password })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        loginBox.classList.add('hidden');
+                        chatUI.classList.remove('hidden');
+                    } else {
+                        document.getElementById('login-error').textContent = data.error || 'Login failed.';
+                    }
+                };
+                // Chat logic
+                const chatDiv = document.getElementById('chat');
+                const input = document.getElementById('input');
+                const sendBtn = document.getElementById('send');
+                function addMsg(text, sender) {
+                    const div = document.createElement('div');
+                    div.className = 'msg ' + sender;
+                    div.textContent = text;
+                    chatDiv.appendChild(div);
+                    chatDiv.scrollTop = chatDiv.scrollHeight;
+                }
+                sendBtn.onclick = async () => {
+                    const msg = input.value.trim();
+                    if (!msg) return;
+                    addMsg(msg, 'user');
+                    input.value = '';
+                    sendBtn.disabled = true;
+                    // Call Gemini API
+                    const res = await fetch('/api/gemini', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ message: msg })
+                    });
+                    const data = await res.json();
+                    addMsg(data.reply || 'No response.', 'ai');
+                    sendBtn.disabled = false;
+                };
+                input.addEventListener('keydown', e => {
+                    if (e.key === 'Enter') sendBtn.click();
+                });
+            </script>
+        </body>
+        </html>
+    `);
+});
+
+// Sign up endpoint
+app.post('/api/signup', (req, res) => {
+    const { name, username, password } = req.body;
+    const data = readData();
+    if (!name || !username || !password) {
+        return res.json({ success: false, error: 'All fields required.' });
+    }
+    if (data.users.find(u => u.username === username)) {
+        return res.json({ success: false, error: 'Username already exists.' });
+    }
+    data.users.push({ name, username, password });
+    writeData(data);
+    res.json({ success: true });
+});
+
+// Login endpoint
+app.post('/api/login', (req, res) => {
+    const { username, password } = req.body;
+    const data = readData();
+    const user = data.users.find(u => u.username === username && u.password === password);
+    if (!user) {
+        return res.json({ success: false, error: 'Invalid credentials.' });
+    }
+    res.json({ success: true });
+});
+
+// Gemini API endpoint
+app.post('/api/gemini', async (req, res) => {
+    const { message } = req.body;
+    // Replace with your Gemini API key
+    const GEMINI_API_KEY = 'AIzaSyD7QvQwQvQwQvQwQvQwQvQwQvQwQvQwQvQ';
+    try {
+        const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ role: 'user', parts: [{ text: message }] }],
+                generationConfig: { temperature: 0.7 }
+            })
+        });
+        const geminiData = await geminiRes.json();
+        let reply = '';
+        if (geminiData && geminiData.candidates && geminiData.candidates[0] && geminiData.candidates[0].content && geminiData.candidates[0].content.parts && geminiData.candidates[0].content.parts[0].text) {
+            reply = geminiData.candidates[0].content.parts[0].text;
+        } else {
+            reply = 'Sorry, no response from Gemini.';
+        }
+        res.json({ reply });
+    } catch (e) {
+        res.json({ reply: 'Error contacting Gemini API.' });
+    }
+});
+
+// Vercel serverless export
+module.exports = app;
 // In-memory user store (for demo)
 const users = [];
 
