@@ -3,14 +3,8 @@
   "version": "1.0.0",
   "description": "Ellerslie School AI Chat Application",
   "main": "index.html",
-  "scripts": {
-    "start": "serve .",
-    "build": "echo ."
-  },
   "keywords": ["ai", "chat", "education"],
   "author": "Ellerslie School AI Team",
-  "license": "MIT",
-  "devDependencies": {
-    "serve": "^14.2.0"
-  }
+  "license": "MIT"
+  
 }
