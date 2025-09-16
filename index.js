@@ -17,128 +17,164 @@
         :root {
             --primary: #2563eb;
             --primary-dark: #1d4ed8;
-            --primary-light: #93c5fd;
-            --accent: #3b82f6;
-            --light: #f8fafc;
-            --dark: #1e293b;
-            --gray: #64748b;
-            --success: #10b981;
-            --error: #ef4444;
-            --code-bg: #1e1e1e;
-            --sidebar-width: 280px;
-        }
-        
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        
-        body {
-            background-color: #f0f7ff;
-            color: var(--dark);
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-        
-        /* Header Styles */
-        header {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            color: white;
-            padding: 1rem 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            z-index: 100;
-        }
-        
-        .logo-container {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-        
-        .logo {
-            width: 50px;
-            height: 50px;
-            background-color: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            color: var(--primary);
-            font-size: 20px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-        
-        .brand-name {
-            font-size: 1.8rem;
-            font-weight: 800;
-            letter-spacing: -0.5px;
-        }
-        
-        /* Main Content */
-        main {
-            flex: 1;
-            display: flex;
-            overflow: hidden;
-        }
-        
-        /* Auth Pages */
-        .auth-container {
-            width: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 2rem;
-            background: linear-gradient(120deg, #e0f2fe, #dbeafe);
-        }
-        
-        .auth-form {
-            background: white;
-            padding: 2.5rem;
-            border-radius: 16px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            width: 100%;
-            max-width: 450px;
-            transform: translateY(0);
-            transition: transform 0.3s, box-shadow 0.3s;
-        }
-        
-        .auth-form:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
-        }
-        
-        .auth-form h2 {
-            color: var(--primary);
-            margin-bottom: 1.5rem;
-            text-align: center;
-            font-size: 1.8rem;
-            font-weight: 700;
-        }
-        
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-        
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 600;
-            color: var(--dark);
-            font-size: 0.95rem;
-        }
-        
-        .form-group input {
-            width: 100%;
-            padding: 0.875rem 1.25rem;
-            border: 2px solid #e2e8f0;
+            const express = require('express');
+            const app = express();
+            app.use(express.json());
+            app.use(express.urlencoded({ extended: true }));
+
+            // In-memory user store (for demo; use a DB in production)
+            const users = [];
+
+            // Serve the frontend
+            app.get('/', (req, res) => {
+                res.send(`<!DOCTYPE html>
+            <html lang="en">
+            <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>Ellerslie School AI</title>
+                    <style>
+                        body { font-family: Segoe UI, Tahoma, Geneva, Verdana, sans-serif; background: #f0f7ff; color: #1e293b; }
+                        .container { max-width: 400px; margin: 3rem auto; background: #fff; border-radius: 12px; box-shadow: 0 8px 32px rgba(37,99,235,0.10); padding: 2rem; }
+                        h2 { color: #2563eb; text-align: center; margin-bottom: 2rem; }
+                        .form-group { margin-bottom: 1.5rem; }
+                        label { display: block; margin-bottom: 0.5rem; font-weight: 600; }
+                        input { width: 100%; padding: 0.75rem 1rem; border: 1.5px solid #e2e8f0; border-radius: 8px; font-size: 1rem; }
+                        input:focus { border-color: #2563eb; outline: none; }
+                        .btn { background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; border: none; width: 100%; padding: 0.9rem; border-radius: 8px; font-size: 1.1rem; font-weight: 600; cursor: pointer; margin-top: 1rem; }
+                        .switch { text-align: center; margin-top: 1.2rem; }
+                        .switch a { color: #2563eb; text-decoration: none; font-weight: 600; }
+                        .switch a:hover { text-decoration: underline; }
+                        .msg { text-align: center; margin-top: 1rem; color: #ef4444; font-weight: 600; }
+                    </style>
+            </head>
+            <body>
+                <div class="container">
+                    <h2 id="form-title">Login to ESAI</h2>
+                    <form id="login-form">
+                        <div class="form-group">
+                            <label for="login-username">Username</label>
+                            <input type="text" id="login-username" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="login-password">Password</label>
+                            <input type="password" id="login-password" required>
+                        </div>
+                        <button type="submit" class="btn">Login</button>
+                        <div class="switch">Don't have an account? <a href="#" id="show-signup">Sign up</a></div>
+                        <div class="msg" id="login-msg"></div>
+                    </form>
+                    <form id="signup-form" style="display:none;">
+                        <div class="form-group">
+                            <label for="signup-realname">Real Name</label>
+                            <input type="text" id="signup-realname" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="signup-username">Username</label>
+                            <input type="text" id="signup-username" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="signup-password">Password</label>
+                            <input type="password" id="signup-password" required>
+                        </div>
+                        <button type="submit" class="btn">Sign Up</button>
+                        <div class="switch">Already have an account? <a href="#" id="show-login">Login</a></div>
+                        <div class="msg" id="signup-msg"></div>
+                    </form>
+                </div>
+                <script>
+                    const loginForm = document.getElementById('login-form');
+                    const signupForm = document.getElementById('signup-form');
+                    const showSignup = document.getElementById('show-signup');
+                    const showLogin = document.getElementById('show-login');
+                    const loginMsg = document.getElementById('login-msg');
+                    const signupMsg = document.getElementById('signup-msg');
+                    const formTitle = document.getElementById('form-title');
+
+                    showSignup.onclick = (e) => {
+                        e.preventDefault();
+                        loginForm.style.display = 'none';
+                        signupForm.style.display = 'block';
+                        formTitle.textContent = 'Create an Account';
+                    };
+                    showLogin.onclick = (e) => {
+                        e.preventDefault();
+                        signupForm.style.display = 'none';
+                        loginForm.style.display = 'block';
+                        formTitle.textContent = 'Login to ESAI';
+                    };
+
+                    signupForm.onsubmit = async (e) => {
+                        e.preventDefault();
+                        signupMsg.textContent = '';
+                        const realName = document.getElementById('signup-realname').value;
+                        const username = document.getElementById('signup-username').value;
+                        const password = document.getElementById('signup-password').value;
+                        const res = await fetch('/api/signup', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ realName, username, password })
+                        });
+                        const data = await res.json();
+                        if (data.success) {
+                            signupMsg.style.color = '#10b981';
+                            signupMsg.textContent = 'Account created! You can now log in.';
+                            signupForm.reset();
+                        } else {
+                            signupMsg.style.color = '#ef4444';
+                            signupMsg.textContent = data.error || 'Signup failed';
+                        }
+                    };
+
+                    loginForm.onsubmit = async (e) => {
+                        e.preventDefault();
+                        loginMsg.textContent = '';
+                        const username = document.getElementById('login-username').value;
+                        const password = document.getElementById('login-password').value;
+                        const res = await fetch('/api/login', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ username, password })
+                        });
+                        const data = await res.json();
+                        if (data.success) {
+                            loginMsg.style.color = '#10b981';
+                            loginMsg.textContent = 'Welcome, ' + data.realName + '!';
+                            loginForm.reset();
+                        } else {
+                            loginMsg.style.color = '#ef4444';
+                            loginMsg.textContent = data.error || 'Login failed';
+                        }
+                    };
+                </script>
+            </body>
+            </html>`);
+            });
+
+            // Signup endpoint
+            app.post('/api/signup', (req, res) => {
+                const { realName, username, password } = req.body;
+                if (!realName || !username || !password) {
+                    return res.status(400).json({ error: 'All fields required.' });
+                }
+                if (users.find(u => u.username === username)) {
+                    return res.status(409).json({ error: 'Username already exists.' });
+                }
+                users.push({ realName, username, password });
+                res.json({ success: true });
+            });
+
+            // Login endpoint
+            app.post('/api/login', (req, res) => {
+                const { username, password } = req.body;
+                const user = users.find(u => u.username === username && u.password === password);
+                if (!user) {
+                    return res.status(401).json({ error: 'Invalid credentials.' });
+                }
+                res.json({ success: true, realName: user.realName, username: user.username });
+            });
+
+            module.exports = app;
             border-radius: 10px;
             font-size: 1rem;
             transition: all 0.3s;
