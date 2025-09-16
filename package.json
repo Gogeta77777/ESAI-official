@@ -2,9 +2,19 @@
   "name": "ellerslie-school-ai",
   "version": "1.0.0",
   "description": "Ellerslie School AI Chat Application",
-  "main": "index.html",
-  "keywords": ["ai", "chat", "education"],
+  "main": "index.js",
+  "keywords": [
+    "ai",
+    "chat",
+    "education"
+  ],
   "author": "Ellerslie School AI Team",
-  "license": "MIT"
-  
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "node-fetch": "^2.7.0"
+  },
+  "scripts": {
+    "start": "node index.js"
+  }
 }
