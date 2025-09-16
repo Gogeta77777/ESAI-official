@@ -219,8 +219,8 @@ app.get('/', (req, res) => {
           '    }' +
           '  </script>' +
           '</body>' +
-          '</html>'
+      '</html>'
   );
-      });
+});
 
-      module.exports = app;
+module.exports = app;
