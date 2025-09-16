@@ -1,4 +1,3 @@
-
 const express = require('express');
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -672,7 +671,7 @@ function loadChats() {
     
   renderChatHistory();
     
-  if (chats.length > 0) {
+  if (chats.length > 0 {
     // Open the last chat
     openChat(chats[chats.length - 1].id);
   } else {
@@ -912,3 +911,5 @@ init();
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
+
+module.exports = app;
