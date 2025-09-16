@@ -21,7 +21,216 @@
             const app = express();
             app.use(express.json());
             app.use(express.urlencoded({ extended: true }));
+const express = require('express');
+const fetch = require('node-fetch');
+const app = express();
+app.use(express.json());
 
+// In-memory user store (for demo)
+const users = [];
+
+// Serve the inlined frontend
+app.get('/', (req, res) => {
+    res.send(`
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>ESAI Chat App</title>
+            <style>
+                body { font-family: Arial, sans-serif; background: #f4f4f4; margin: 0; }
+                .container { max-width: 600px; margin: 40px auto; background: #fff; padding: 24px; border-radius: 8px; box-shadow: 0 2px 8px #0001; }
+                h1 { text-align: center; }
+                #chat { height: 300px; overflow-y: auto; border: 1px solid #ddd; padding: 12px; margin-bottom: 16px; background: #fafafa; border-radius: 6px; }
+                .msg { margin-bottom: 12px; }
+                .msg.user { text-align: right; color: #007bff; }
+                .msg.ai { text-align: left; color: #333; }
+                #input { width: 80%; padding: 8px; border-radius: 4px; border: 1px solid #ccc; }
+                #send { padding: 8px 16px; border-radius: 4px; border: none; background: #007bff; color: #fff; cursor: pointer; }
+                #send:disabled { background: #aaa; }
+                .auth { margin-bottom: 16px; }
+                .hidden { display: none; }
+                .error { color: red; margin-bottom: 8px; }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <h1>ESAI Chat App</h1>
+                <div id="model-info" style="margin-bottom:12px; font-size:0.95em; color:#555;">
+                    Model: <b>ESAI-Alpha-1</b> (Gemini, by ESAI, released 2025, start of term 4)
+                </div>
+                <div class="auth">
+                    <div id="signup-box">
+                        <h3>Sign Up</h3>
+                        <div class="error" id="signup-error"></div>
+                        <input id="signup-name" placeholder="Real Name" /> <br />
+                        <input id="signup-username" placeholder="Username" /> <br />
+                        <input id="signup-password" type="password" placeholder="Password" /> <br />
+                        <button id="signup-btn">Sign Up</button>
+                        <span style="margin-left:8px; font-size:0.9em;">Already have an account? <a href="#" id="show-login">Login</a></span>
+                    </div>
+                    <div id="login-box" class="hidden">
+                        <h3>Login</h3>
+                        <div class="error" id="login-error"></div>
+                        <input id="login-username" placeholder="Username" /> <br />
+                        <input id="login-password" type="password" placeholder="Password" /> <br />
+                        <button id="login-btn">Login</button>
+                        <span style="margin-left:8px; font-size:0.9em;">No account? <a href="#" id="show-signup">Sign Up</a></span>
+                    </div>
+                </div>
+                <div id="chat-ui" class="hidden">
+                    <div id="chat"></div>
+                    <input id="input" placeholder="Type your message..." />
+                    <button id="send">Send</button>
+                </div>
+            </div>
+            <script>
+                // Auth UI logic
+                const signupBox = document.getElementById('signup-box');
+                const loginBox = document.getElementById('login-box');
+                const chatUI = document.getElementById('chat-ui');
+                document.getElementById('show-login').onclick = () => {
+                    signupBox.classList.add('hidden');
+                    loginBox.classList.remove('hidden');
+                };
+                document.getElementById('show-signup').onclick = () => {
+                    loginBox.classList.add('hidden');
+                    signupBox.classList.remove('hidden');
+                };
+                // Sign Up
+                document.getElementById('signup-btn').onclick = async () => {
+                    const name = document.getElementById('signup-name').value.trim();
+                    const username = document.getElementById('signup-username').value.trim();
+                    const password = document.getElementById('signup-password').value;
+                    document.getElementById('signup-error').textContent = '';
+                    if (!name || !username || !password) {
+                        document.getElementById('signup-error').textContent = 'All fields required.';
+                        return;
+                    }
+                    const res = await fetch('/api/signup', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ name, username, password })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        signupBox.classList.add('hidden');
+                        chatUI.classList.remove('hidden');
+                    } else {
+                        document.getElementById('signup-error').textContent = data.error || 'Sign up failed.';
+                    }
+                };
+                // Login
+                document.getElementById('login-btn').onclick = async () => {
+                    const username = document.getElementById('login-username').value.trim();
+                    const password = document.getElementById('login-password').value;
+                    document.getElementById('login-error').textContent = '';
+                    if (!username || !password) {
+                        document.getElementById('login-error').textContent = 'All fields required.';
+                        return;
+                    }
+                    const res = await fetch('/api/login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username, password })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        loginBox.classList.add('hidden');
+                        chatUI.classList.remove('hidden');
+                    } else {
+                        document.getElementById('login-error').textContent = data.error || 'Login failed.';
+                    }
+                };
+                // Chat logic
+                const chatDiv = document.getElementById('chat');
+                const input = document.getElementById('input');
+                const sendBtn = document.getElementById('send');
+                function addMsg(text, sender) {
+                    const div = document.createElement('div');
+                    div.className = 'msg ' + sender;
+                    div.textContent = text;
+                    chatDiv.appendChild(div);
+                    chatDiv.scrollTop = chatDiv.scrollHeight;
+                }
+                sendBtn.onclick = async () => {
+                    const msg = input.value.trim();
+                    if (!msg) return;
+                    addMsg(msg, 'user');
+                    input.value = '';
+                    sendBtn.disabled = true;
+                    // Call Gemini API
+                    const res = await fetch('/api/gemini', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ message: msg })
+                    });
+                    const data = await res.json();
+                    addMsg(data.reply || 'No response.', 'ai');
+                    sendBtn.disabled = false;
+                };
+                input.addEventListener('keydown', e => {
+                    if (e.key === 'Enter') sendBtn.click();
+                });
+            </script>
+        </body>
+        </html>
+    `);
+});
+
+// Sign up endpoint
+app.post('/api/signup', (req, res) => {
+    const { name, username, password } = req.body;
+    if (!name || !username || !password) {
+        return res.json({ success: false, error: 'All fields required.' });
+    }
+    if (users.find(u => u.username === username)) {
+        return res.json({ success: false, error: 'Username already exists.' });
+    }
+    users.push({ name, username, password });
+    res.json({ success: true });
+});
+
+// Login endpoint
+app.post('/api/login', (req, res) => {
+    const { username, password } = req.body;
+    const user = users.find(u => u.username === username && u.password === password);
+    if (!user) {
+        return res.json({ success: false, error: 'Invalid credentials.' });
+    }
+    res.json({ success: true });
+});
+
+// Gemini API endpoint
+app.post('/api/gemini', async (req, res) => {
+    const { message } = req.body;
+    // Replace with your Gemini API key
+    const GEMINI_API_KEY = 'AIzaSyD7QvQwQvQwQvQwQvQwQvQwQvQwQvQwQvQ';
+    try {
+        const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ role: 'user', parts: [{ text: message }] }],
+                generationConfig: { temperature: 0.7 }
+            })
+        });
+        const geminiData = await geminiRes.json();
+        let reply = '';
+        if (geminiData && geminiData.candidates && geminiData.candidates[0] && geminiData.candidates[0].content && geminiData.candidates[0].content.parts && geminiData.candidates[0].content.parts[0].text) {
+            reply = geminiData.candidates[0].content.parts[0].text;
+        } else {
+            reply = 'Sorry, no response from Gemini.';
+        }
+        res.json({ reply });
+    } catch (e) {
+        res.json({ reply: 'Error contacting Gemini API.' });
+    }
+});
+
+// Vercel serverless export
+module.exports = app;
             // In-memory user store (for demo; use a DB in production)
             const users = [];
 
@@ -43,292 +252,318 @@
                         input:focus { border-color: #2563eb; outline: none; }
                         .btn { background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; border: none; width: 100%; padding: 0.9rem; border-radius: 8px; font-size: 1.1rem; font-weight: 600; cursor: pointer; margin-top: 1rem; }
                         .switch { text-align: center; margin-top: 1.2rem; }
-                        .switch a { color: #2563eb; text-decoration: none; font-weight: 600; }
-                        .switch a:hover { text-decoration: underline; }
-                        .msg { text-align: center; margin-top: 1rem; color: #ef4444; font-weight: 600; }
-                    </style>
-            </head>
-            <body>
-                <div class="container">
-                    <h2 id="form-title">Login to ESAI</h2>
-                    <form id="login-form">
-                        <div class="form-group">
-                            <label for="login-username">Username</label>
-                            <input type="text" id="login-username" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="login-password">Password</label>
-                            <input type="password" id="login-password" required>
-                        </div>
-                        <button type="submit" class="btn">Login</button>
-                        <div class="switch">Don't have an account? <a href="#" id="show-signup">Sign up</a></div>
-                        <div class="msg" id="login-msg"></div>
-                    </form>
-                    <form id="signup-form" style="display:none;">
-                        <div class="form-group">
-                            <label for="signup-realname">Real Name</label>
-                            <input type="text" id="signup-realname" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="signup-username">Username</label>
-                            <input type="text" id="signup-username" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="signup-password">Password</label>
-                            <input type="password" id="signup-password" required>
-                        </div>
-                        <button type="submit" class="btn">Sign Up</button>
-                        <div class="switch">Already have an account? <a href="#" id="show-login">Login</a></div>
-                        <div class="msg" id="signup-msg"></div>
-                    </form>
-                </div>
-                <script>
-                    const loginForm = document.getElementById('login-form');
-                    const signupForm = document.getElementById('signup-form');
-                    const showSignup = document.getElementById('show-signup');
-                    const showLogin = document.getElementById('show-login');
-                    const loginMsg = document.getElementById('login-msg');
-                    const signupMsg = document.getElementById('signup-msg');
-                    const formTitle = document.getElementById('form-title');
 
-                    showSignup.onclick = (e) => {
-                        e.preventDefault();
-                        loginForm.style.display = 'none';
-                        signupForm.style.display = 'block';
-                        formTitle.textContent = 'Create an Account';
-                    };
-                    showLogin.onclick = (e) => {
-                        e.preventDefault();
-                        signupForm.style.display = 'none';
-                        loginForm.style.display = 'block';
-                        formTitle.textContent = 'Login to ESAI';
-                    };
+                        const express = require('express');
+                        const fetch = require('node-fetch');
+                        const app = express();
+                        app.use(express.json());
 
-                    signupForm.onsubmit = async (e) => {
-                        e.preventDefault();
-                        signupMsg.textContent = '';
-                        const realName = document.getElementById('signup-realname').value;
-                        const username = document.getElementById('signup-username').value;
-                        const password = document.getElementById('signup-password').value;
-                        const res = await fetch('/api/signup', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ realName, username, password })
-                        });
-                        const data = await res.json();
-                        if (data.success) {
-                            signupMsg.style.color = '#10b981';
-                            signupMsg.textContent = 'Account created! You can now log in.';
-                            signupForm.reset();
-                        } else {
-                            signupMsg.style.color = '#ef4444';
-                            signupMsg.textContent = data.error || 'Signup failed';
-                        }
-                    };
+                        // In-memory user store (for demo)
+                        const users = [];
 
-                    loginForm.onsubmit = async (e) => {
-                        e.preventDefault();
-                        loginMsg.textContent = '';
-                        const username = document.getElementById('login-username').value;
-                        const password = document.getElementById('login-password').value;
-                        const res = await fetch('/api/login', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ username, password })
-                        });
-                        const data = await res.json();
-                        if (data.success) {
-                            loginMsg.style.color = '#10b981';
-                            loginMsg.textContent = 'Welcome, ' + data.realName + '!';
-                            loginForm.reset();
-                        } else {
-                            loginMsg.style.color = '#ef4444';
-                            loginMsg.textContent = data.error || 'Login failed';
-                        }
-                    };
-                </script>
-            </body>
-            </html>`);
-            });
+                        // Serve the inlined frontend
+                        app.get('/', (req, res) => {
+                            res.send(`
+                                <!DOCTYPE html>
+                                <html lang="en">
+                                <head>
+                                    <meta charset="UTF-8">
+                                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                                    <title>ESAI Chat App</title>
+                                    <style>
+                                        body { font-family: Arial, sans-serif; background: #f4f4f4; margin: 0; }
+                                        .container { max-width: 600px; margin: 40px auto; background: #fff; padding: 24px; border-radius: 8px; box-shadow: 0 2px 8px #0001; }
+                                        h1 { text-align: center; }
+                                        #chat { height: 300px; overflow-y: auto; border: 1px solid #ddd; padding: 12px; margin-bottom: 16px; background: #fafafa; border-radius: 6px; }
+                                        .msg { margin-bottom: 12px; }
+                                        .msg.user { text-align: right; color: #007bff; }
+                                        .msg.ai { text-align: left; color: #333; }
+                                        #input { width: 80%; padding: 8px; border-radius: 4px; border: 1px solid #ccc; }
+                                        #send { padding: 8px 16px; border-radius: 4px; border: none; background: #007bff; color: #fff; cursor: pointer; }
+                                        #send:disabled { background: #aaa; }
+                                        .auth { margin-bottom: 16px; }
+                                        .hidden { display: none; }
+                                        .error { color: red; margin-bottom: 8px; }
+                                    </style>
+                                </head>
+                                <body>
+                                    <div class="container">
+                                        <h1>ESAI Chat App</h1>
+                                        <div id="model-info" style="margin-bottom:12px; font-size:0.95em; color:#555;">
+                                            Model: <b>ESAI-Alpha-1</b> (Gemini, by ESAI, released 2025, start of term 4)
+                                        </div>
+                                        <div class="auth">
+                                            <div id="signup-box">
+                                                <h3>Sign Up</h3>
+                                                <div class="error" id="signup-error"></div>
+                                                <input id="signup-name" placeholder="Real Name" /> <br />
+                                                <input id="signup-username" placeholder="Username" /> <br />
+                                                <input id="signup-password" type="password" placeholder="Password" /> <br />
+                                                <button id="signup-btn">Sign Up</button>
+                                                <span style="margin-left:8px; font-size:0.9em;">Already have an account? <a href="#" id="show-login">Login</a></span>
+                                            </div>
+                                            <div id="login-box" class="hidden">
+                                                <h3>Login</h3>
+                                                <div class="error" id="login-error"></div>
+                                                <input id="login-username" placeholder="Username" /> <br />
+                                                <input id="login-password" type="password" placeholder="Password" /> <br />
+                                                <button id="login-btn">Login</button>
+                                                <span style="margin-left:8px; font-size:0.9em;">No account? <a href="#" id="show-signup">Sign Up</a></span>
+                                            </div>
+                                        </div>
+                                        <div id="chat-ui" class="hidden">
+                                            <div id="chat"></div>
+                                            <input id="input" placeholder="Type your message..." />
+                                            <button id="send">Send</button>
+                                        </div>
+                                    </div>
+                                    <script>
+                                        // Auth UI logic
+                                        const signupBox = document.getElementById('signup-box');
+                                        const loginBox = document.getElementById('login-box');
+                                        const chatUI = document.getElementById('chat-ui');
+                                        document.getElementById('show-login').onclick = () => {
+                                            signupBox.classList.add('hidden');
+                                            loginBox.classList.remove('hidden');
+                                        };
+                                        document.getElementById('show-signup').onclick = () => {
+                                            loginBox.classList.add('hidden');
+                                            signupBox.classList.remove('hidden');
+                                        };
+                                        // Sign Up
+                                        document.getElementById('signup-btn').onclick = async () => {
+                                            const name = document.getElementById('signup-name').value.trim();
+                                            const username = document.getElementById('signup-username').value.trim();
+                                            const password = document.getElementById('signup-password').value;
+                                            document.getElementById('signup-error').textContent = '';
+                                            if (!name || !username || !password) {
+                                                document.getElementById('signup-error').textContent = 'All fields required.';
+                                                return;
+                                            }
+                                            const res = await fetch('/api/signup', {
+                                                method: 'POST',
+                                                headers: { 'Content-Type': 'application/json' },
+                                                body: JSON.stringify({ name, username, password })
+                                            });
+                                            const data = await res.json();
+                                            if (data.success) {
+                                                signupBox.classList.add('hidden');
+                                                chatUI.classList.remove('hidden');
+                                            } else {
+                                                document.getElementById('signup-error').textContent = data.error || 'Sign up failed.';
+                                            }
+                                        };
 
-            // Signup endpoint
-            app.post('/api/signup', (req, res) => {
-                const { realName, username, password } = req.body;
-                if (!realName || !username || !password) {
-                    return res.status(400).json({ error: 'All fields required.' });
-                }
-                if (users.find(u => u.username === username)) {
-                    return res.status(409).json({ error: 'Username already exists.' });
-                }
-                users.push({ realName, username, password });
-                res.json({ success: true });
-            });
+                                        const express = require('express');
+                                        const fetch = require('node-fetch');
+                                        const app = express();
+                                        app.use(express.json());
 
-            // Login endpoint
-            app.post('/api/login', (req, res) => {
-                const { username, password } = req.body;
-                const user = users.find(u => u.username === username && u.password === password);
-                if (!user) {
-                    return res.status(401).json({ error: 'Invalid credentials.' });
-                }
-                res.json({ success: true, realName: user.realName, username: user.username });
-            });
+                                        // In-memory user store (for demo)
+                                        const users = [];
 
-            module.exports = app;
-            border-radius: 10px;
-            font-size: 1rem;
-            transition: all 0.3s;
-            background-color: #f8fafc;
-        }
-        
-        .form-group input:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15);
-            background-color: white;
-        }
-        
-        .btn {
-            padding: 0.875rem 1.5rem;
-            border: none;
-            border-radius: 10px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-        }
-        
-        .btn-primary {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            color: white;
-            width: 100%;
-            box-shadow: 0 4px 6px rgba(37, 99, 235, 0.3);
-        }
-        
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(37, 99, 235, 0.4);
-        }
-        
-        .auth-switch {
-            text-align: center;
-            margin-top: 1.5rem;
-            color: var(--gray);
-            font-size: 0.95rem;
-        }
-        
-        .auth-switch a {
-            color: var(--primary);
-            text-decoration: none;
-            font-weight: 600;
-            transition: color 0.3s;
-        }
-        
-        .auth-switch a:hover {
-            color: var(--primary-dark);
-            text-decoration: underline;
-        }
-        
-        /* Chat Interface */
-        .chat-container {
-            display: none;
-            flex: 1;
-            flex-direction: column;
-            height: 100%;
-        }
-        
-        .sidebar {
-            width: var(--sidebar-width);
-            background-color: white;
-            border-right: 1px solid #e2e8f0;
-            padding: 1.5rem;
-            display: flex;
-            flex-direction: column;
-            overflow-y: auto;
-            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
-        }
-        
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            margin-bottom: 2rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid #e2e8f0;
-        }
-        
-        .user-avatar {
-            width: 50px;
-            height: 50px;
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            color: white;
-            font-size: 1.2rem;
-            box-shadow: 0 4px 8px rgba(37, 99, 235, 0.2);
-        }
-        
-        .user-details {
-            flex: 1;
-        }
-        
-        .user-details h3 {
-            font-size: 1.1rem;
-            margin-bottom: 0.25rem;
-            color: var(--dark);
-        }
-        
-        .user-details p {
-            color: var(--gray);
-            font-size: 0.9rem;
-        }
-        
-        .logout-btn {
-            background: none;
-            border: none;
-            color: var(--gray);
-            cursor: pointer;
-            font-size: 1.2rem;
-            transition: color 0.3s;
-        }
-        
-        .logout-btn:hover {
-            color: var(--error);
-        }
-        
-        .new-chat-btn {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            color: white;
-            border: none;
-            padding: 0.875rem;
-            border-radius: 10px;
-            margin-bottom: 1.5rem;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-            box-shadow: 0 4px 6px rgba(37, 99, 235, 0.3);
-            transition: all 0.3s;
-        }
-        
-        .new-chat-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(37, 99, 235, 0.4);
-        }
-        
-        .chat-history {
-            flex: 1;
-            overflow-y: auto;
-            padding-right: 0.5rem;
+                                        // Serve the inlined frontend
+                                        app.get('/', (req, res) => {
+                                            res.send(`
+                                                <!DOCTYPE html>
+                                                <html lang="en">
+                                                <head>
+                                                    <meta charset="UTF-8">
+                                                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                                                    <title>ESAI Chat App</title>
+                                                    <style>
+                                                        body { font-family: Arial, sans-serif; background: #f4f4f4; margin: 0; }
+                                                        .container { max-width: 600px; margin: 40px auto; background: #fff; padding: 24px; border-radius: 8px; box-shadow: 0 2px 8px #0001; }
+                                                        h1 { text-align: center; }
+                                                        #chat { height: 300px; overflow-y: auto; border: 1px solid #ddd; padding: 12px; margin-bottom: 16px; background: #fafafa; border-radius: 6px; }
+                                                        .msg { margin-bottom: 12px; }
+                                                        .msg.user { text-align: right; color: #007bff; }
+                                                        .msg.ai { text-align: left; color: #333; }
+                                                        #input { width: 80%; padding: 8px; border-radius: 4px; border: 1px solid #ccc; }
+                                                        #send { padding: 8px 16px; border-radius: 4px; border: none; background: #007bff; color: #fff; cursor: pointer; }
+                                                        #send:disabled { background: #aaa; }
+                                                        .auth { margin-bottom: 16px; }
+                                                        .hidden { display: none; }
+                                                        .error { color: red; margin-bottom: 8px; }
+                                                    </style>
+                                                </head>
+                                                <body>
+                                                    <div class="container">
+                                                        <h1>ESAI Chat App</h1>
+                                                        <div id="model-info" style="margin-bottom:12px; font-size:0.95em; color:#555;">
+                                                            Model: <b>ESAI-Alpha-1</b> (Gemini, by ESAI, released 2025, start of term 4)
+                                                        </div>
+                                                        <div class="auth">
+                                                            <div id="signup-box">
+                                                                <h3>Sign Up</h3>
+                                                                <div class="error" id="signup-error"></div>
+                                                                <input id="signup-name" placeholder="Real Name" /> <br />
+                                                                <input id="signup-username" placeholder="Username" /> <br />
+                                                                <input id="signup-password" type="password" placeholder="Password" /> <br />
+                                                                <button id="signup-btn">Sign Up</button>
+                                                                <span style="margin-left:8px; font-size:0.9em;">Already have an account? <a href="#" id="show-login">Login</a></span>
+                                                            </div>
+                                                            <div id="login-box" class="hidden">
+                                                                <h3>Login</h3>
+                                                                <div class="error" id="login-error"></div>
+                                                                <input id="login-username" placeholder="Username" /> <br />
+                                                                <input id="login-password" type="password" placeholder="Password" /> <br />
+                                                                <button id="login-btn">Login</button>
+                                                                <span style="margin-left:8px; font-size:0.9em;">No account? <a href="#" id="show-signup">Sign Up</a></span>
+                                                            </div>
+                                                        </div>
+                                                        <div id="chat-ui" class="hidden">
+                                                            <div id="chat"></div>
+                                                            <input id="input" placeholder="Type your message..." />
+                                                            <button id="send">Send</button>
+                                                        </div>
+                                                    </div>
+                                                    <script>
+                                                        // Auth UI logic
+                                                        const signupBox = document.getElementById('signup-box');
+                                                        const loginBox = document.getElementById('login-box');
+                                                        const chatUI = document.getElementById('chat-ui');
+                                                        document.getElementById('show-login').onclick = () => {
+                                                            signupBox.classList.add('hidden');
+                                                            loginBox.classList.remove('hidden');
+                                                        };
+                                                        document.getElementById('show-signup').onclick = () => {
+                                                            loginBox.classList.add('hidden');
+                                                            signupBox.classList.remove('hidden');
+                                                        };
+                                                        // Sign Up
+                                                        document.getElementById('signup-btn').onclick = async () => {
+                                                            const name = document.getElementById('signup-name').value.trim();
+                                                            const username = document.getElementById('signup-username').value.trim();
+                                                            const password = document.getElementById('signup-password').value;
+                                                            document.getElementById('signup-error').textContent = '';
+                                                            if (!name || !username || !password) {
+                                                                document.getElementById('signup-error').textContent = 'All fields required.';
+                                                                return;
+                                                            }
+                                                            const res = await fetch('/api/signup', {
+                                                                method: 'POST',
+                                                                headers: { 'Content-Type': 'application/json' },
+                                                                body: JSON.stringify({ name, username, password })
+                                                            });
+                                                            const data = await res.json();
+                                                            if (data.success) {
+                                                                signupBox.classList.add('hidden');
+                                                                chatUI.classList.remove('hidden');
+                                                            } else {
+                                                                document.getElementById('signup-error').textContent = data.error || 'Sign up failed.';
+                                                            }
+                                                        };
+                                                        // Login
+                                                        document.getElementById('login-btn').onclick = async () => {
+                                                            const username = document.getElementById('login-username').value.trim();
+                                                            const password = document.getElementById('login-password').value;
+                                                            document.getElementById('login-error').textContent = '';
+                                                            if (!username || !password) {
+                                                                document.getElementById('login-error').textContent = 'All fields required.';
+                                                                return;
+                                                            }
+                                                            const res = await fetch('/api/login', {
+                                                                method: 'POST',
+                                                                headers: { 'Content-Type': 'application/json' },
+                                                                body: JSON.stringify({ username, password })
+                                                            });
+                                                            const data = await res.json();
+                                                            if (data.success) {
+                                                                loginBox.classList.add('hidden');
+                                                                chatUI.classList.remove('hidden');
+                                                            } else {
+                                                                document.getElementById('login-error').textContent = data.error || 'Login failed.';
+                                                            }
+                                                        };
+                                                        // Chat logic
+                                                        const chatDiv = document.getElementById('chat');
+                                                        const input = document.getElementById('input');
+                                                        const sendBtn = document.getElementById('send');
+                                                        function addMsg(text, sender) {
+                                                            const div = document.createElement('div');
+                                                            div.className = 'msg ' + sender;
+                                                            div.textContent = text;
+                                                            chatDiv.appendChild(div);
+                                                            chatDiv.scrollTop = chatDiv.scrollHeight;
+                                                        }
+                                                        sendBtn.onclick = async () => {
+                                                            const msg = input.value.trim();
+                                                            if (!msg) return;
+                                                            addMsg(msg, 'user');
+                                                            input.value = '';
+                                                            sendBtn.disabled = true;
+                                                            // Call Gemini API
+                                                            const res = await fetch('/api/gemini', {
+                                                                method: 'POST',
+                                                                headers: { 'Content-Type': 'application/json' },
+                                                                body: JSON.stringify({ message: msg })
+                                                            });
+                                                            const data = await res.json();
+                                                            addMsg(data.reply || 'No response.', 'ai');
+                                                            sendBtn.disabled = false;
+                                                        };
+                                                        input.addEventListener('keydown', e => {
+                                                            if (e.key === 'Enter') sendBtn.click();
+                                                        });
+                                                    </script>
+                                                </body>
+                                                </html>
+                                            `);
+                                        });
+
+                                        // Sign up endpoint
+                                        app.post('/api/signup', (req, res) => {
+                                            const { name, username, password } = req.body;
+                                            if (!name || !username || !password) {
+                                                return res.json({ success: false, error: 'All fields required.' });
+                                            }
+                                            if (users.find(u => u.username === username)) {
+                                                return res.json({ success: false, error: 'Username already exists.' });
+                                            }
+                                            users.push({ name, username, password });
+                                            res.json({ success: true });
+                                        });
+
+                                        // Login endpoint
+                                        app.post('/api/login', (req, res) => {
+                                            const { username, password } = req.body;
+                                            const user = users.find(u => u.username === username && u.password === password);
+                                            if (!user) {
+                                                return res.json({ success: false, error: 'Invalid credentials.' });
+                                            }
+                                            res.json({ success: true });
+                                        });
+
+                                        // Gemini API endpoint
+                                        app.post('/api/gemini', async (req, res) => {
+                                            const { message } = req.body;
+                                            // Replace with your Gemini API key
+                                            const GEMINI_API_KEY = 'AIzaSyD7QvQwQvQwQvQwQvQwQvQwQvQwQvQwQvQ';
+                                            try {
+                                                const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`, {
+                                                    method: 'POST',
+                                                    headers: { 'Content-Type': 'application/json' },
+                                                    body: JSON.stringify({
+                                                        contents: [{ role: 'user', parts: [{ text: message }] }],
+                                                        generationConfig: { temperature: 0.7 }
+                                                    })
+                                                });
+                                                const geminiData = await geminiRes.json();
+                                                let reply = '';
+                                                if (geminiData && geminiData.candidates && geminiData.candidates[0] && geminiData.candidates[0].content && geminiData.candidates[0].content.parts && geminiData.candidates[0].content.parts[0].text) {
+                                                    reply = geminiData.candidates[0].content.parts[0].text;
+                                                } else {
+                                                    reply = 'Sorry, no response from Gemini.';
+                                                }
+                                                res.json({ reply });
+                                            } catch (e) {
+                                                res.json({ reply: 'Error contacting Gemini API.' });
+                                            }
+                                        });
+
+                                        // Vercel serverless export
+                                        module.exports = app;
         }
         
         .chat-history::-webkit-scrollbar {
