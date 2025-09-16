@@ -220,7 +220,7 @@ app.get('/', (req, res) => {
           '  </script>' +
           '</body>' +
           '</html>'
-        );
+  );
       });
 
       module.exports = app;
