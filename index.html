@@ -430,61 +430,65 @@
                     </style>
 
 
-        /* Enhanced button styles */
+        /* Overhauled button styles */
         button, .btn {
             background: linear-gradient(90deg, var(--primary) 0%, var(--primary-dark) 100%);
             color: #fff;
             border: none;
-            border-radius: 10px;
-            font-size: 1.08rem;
+            border-radius: 12px;
+            font-size: 1.1rem;
             font-weight: 600;
-            padding: 0.8rem 1.5rem;
-            box-shadow: 0 2px 8px rgba(33, 118, 255, 0.10);
+            padding: 0.9rem 1.7rem;
+            box-shadow: 0 2px 12px rgba(33, 118, 255, 0.12);
             cursor: pointer;
             margin: 0.5rem 0;
-            transition: background 0.2s, box-shadow 0.2s;
+            transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
+        }
+        button:active, .btn:active {
+            transform: scale(0.98);
         }
         button:hover, .btn:hover {
             background: linear-gradient(90deg, var(--primary-dark) 0%, var(--primary) 100%);
-            box-shadow: 0 4px 16px rgba(33, 118, 255, 0.18);
+            box-shadow: 0 6px 24px rgba(33, 118, 255, 0.18);
         }
-        /* Enhanced input styles */
+        /* Input styles */
         input, textarea, select {
-            border-radius: 8px;
-            border: 1.5px solid var(--primary-light);
-            padding: 0.7rem 1rem;
-            font-size: 1rem;
+            border-radius: 10px;
+            border: 2px solid var(--primary-light);
+            padding: 0.8rem 1.2rem;
+            font-size: 1.05rem;
             background: var(--input-bg);
             margin-bottom: 0.5rem;
-            transition: border-color 0.2s;
+            transition: border-color 0.2s, box-shadow 0.2s;
         }
         input:focus, textarea:focus, select:focus {
             border-color: var(--primary);
             outline: none;
+            box-shadow: 0 0 0 4px #2563eb22;
         }
-        /* Enhanced list styles */
+        /* List styles */
         ul, ol {
             background: var(--glass);
-            border-radius: 10px;
-            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            padding: 1.2rem 1.7rem;
             margin: 1rem 0;
-            box-shadow: 0 2px 8px rgba(33, 118, 255, 0.08);
+            box-shadow: 0 2px 12px rgba(33, 118, 255, 0.10);
         }
         li {
-            margin-bottom: 0.5rem;
-            font-size: 1.05rem;
+            margin-bottom: 0.7rem;
+            font-size: 1.08rem;
         }
         /* Card style for chat items */
         .chat-item {
             background: var(--glass);
-            border-radius: 10px;
-            box-shadow: 0 2px 8px rgba(33, 118, 255, 0.08);
-            padding: 1rem;
-            margin-bottom: 0.5rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(33, 118, 255, 0.10);
+            padding: 1.1rem;
+            margin-bottom: 0.7rem;
             display: flex;
             align-items: center;
-            gap: 0.75rem;
-            border: 1.5px solid var(--primary-light);
+            gap: 0.8rem;
+            border: 2px solid var(--primary-light);
             transition: background 0.2s, border 0.2s;
         }
         .chat-item:hover, .chat-item.active {
@@ -493,8 +497,8 @@
         }
         /* Icon style */
         .chat-item i, .btn i {
-            margin-right: 0.5rem;
-            font-size: 1.2rem;
+            margin-right: 0.6rem;
+            font-size: 1.3rem;
             color: var(--primary-dark);
         }
         /* Switch links */
@@ -508,7 +512,138 @@
             color: var(--primary-dark);
             text-decoration: underline;
         }
-        /* Add more modern UI enhancements as needed */
+        /* Scrollbar styles */
+        ::-webkit-scrollbar {
+            width: 10px;
+            background: var(--primary-light);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--background);
+            border-radius: 10px;
+        }
+        /* Settings modal */
+        .settings-modal {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.2s, visibility 0.2s;
+        }
+        .settings-modal.active {
+            visibility: visible;
+            opacity: 1;
+        }
+        .settings-content {
+            background: var(--white);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(44, 130, 201, 0.18);
+            padding: 2.5rem 2rem 2rem 2rem;
+            min-width: 320px;
+            max-width: 90vw;
+        }
+        .settings-content h2 {
+            margin-top: 0;
+            color: var(--primary);
+            font-size: 1.5rem;
+            margin-bottom: 1.2rem;
+        }
+        .settings-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.2rem;
+        }
+        .toggle-switch {
+            position: relative;
+            width: 52px;
+            height: 28px;
+        }
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: var(--primary-light);
+            border-radius: 28px;
+            transition: background 0.2s;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 3px;
+            bottom: 3px;
+            background: var(--primary);
+            border-radius: 50%;
+            transition: transform 0.2s;
+        }
+        .toggle-switch input:checked + .slider {
+            background: #222e3a;
+        }
+        .toggle-switch input:checked + .slider:before {
+            transform: translateX(24px);
+            background: #222e3a;
+        }
+        /* Dark mode styles */
+        body.dark-mode {
+            background: #181f2a;
+            color: #e3eafc;
+        }
+        body.dark-mode .container, body.dark-mode .chat-container, body.dark-mode .auth-container, body.dark-mode .sidebar, body.dark-mode .chat-main, body.dark-mode .settings-content {
+            background: #222e3a !important;
+            color: #e3eafc !important;
+            box-shadow: 0 8px 32px rgba(44, 130, 201, 0.10);
+        }
+        body.dark-mode .chat-item, body.dark-mode ul, body.dark-mode ol {
+            background: #222e3a !important;
+            color: #e3eafc !important;
+        }
+        body.dark-mode button, body.dark-mode .btn {
+            background: linear-gradient(90deg, #222e3a 0%, #2563eb 100%);
+            color: #e3eafc;
+        }
+        body.dark-mode .chat-header, body.dark-mode .chat-input-container {
+            background: #181f2a !important;
+            color: #e3eafc !important;
+        }
+        body.dark-mode .chat-messages {
+            background: #181f2a !important;
+        }
+        body.dark-mode .message {
+            background: #222e3a !important;
+            color: #e3eafc !important;
+        }
+        body.dark-mode .user-message {
+            background: linear-gradient(135deg, #2563eb, #222e3a) !important;
+            color: #e3eafc !important;
+        }
+        body.dark-mode .ai-message {
+            background: #222e3a !important;
+            color: #e3eafc !important;
+            border: 1.5px solid #2563eb !important;
+        }
+        body.dark-mode .model-badge {
+            background: #2563eb !important;
+            color: #e3eafc !important;
+        }
+        body.dark-mode .toast {
+            background: linear-gradient(135deg, #2563eb, #222e3a) !important;
+            color: #e3eafc !important;
+        }
 </head>
 <body>
     <!-- Header Section -->
@@ -523,8 +658,30 @@
         <div style="font-size: 1rem; display: flex; align-items: center; gap: 0.5rem;">
             <span>Made by ESAI</span>
             <span class="model-badge">ESAI-Alpha-1</span>
+            <button id="settings-btn" class="btn" style="margin-left: 1rem;">
+                <i class="fas fa-cog"></i> Settings
+            </button>
+            <button id="logout-btn-header" class="btn" style="margin-left: 0.5rem;">
+                <i class="fas fa-sign-out-alt"></i> Log Out
+            </button>
         </div>
     </header>
+    <!-- Settings Modal -->
+    <div class="settings-modal" id="settings-modal">
+        <div class="settings-content">
+            <h2>Settings</h2>
+            <div class="settings-row">
+                <span>Dark Mode</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="dark-mode-toggle">
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div class="settings-row">
+                <button id="close-settings" class="btn">Close</button>
+            </div>
+        </div>
+    </div>
 
     <!-- Main Content -->
     <main>
@@ -659,31 +816,36 @@
     <div class="toast" id="toast"></div>
 
     <script>
-        // DOM Elements
-        const authContainer = document.getElementById('auth-container');
-        const loginForm = document.getElementById('login-form');
-        const signupForm = document.getElementById('signup-form');
-        const showSignupLink = document.getElementById('show-signup');
-        const showLoginLink = document.getElementById('show-login');
-        const chatContainer = document.getElementById('chat-container');
-        const logoutBtn = document.getElementById('logout-btn');
-        const newChatBtn = document.getElementById('new-chat-btn');
-        const chatHistory = document.getElementById('chat-history');
-        const chatMessages = document.getElementById('chat-messages');
-        const chatInput = document.getElementById('chat-input');
-        const sendBtn = document.getElementById('send-btn');
-        const cancelBtn = document.getElementById('cancel-btn');
-        const userAvatar = document.getElementById('user-avatar');
-        const userRealname = document.getElementById('user-realname');
-        const userUsername = document.getElementById('user-username');
-        const modelSelect = document.getElementById('model-select');
-        const codeContainer = document.getElementById('code-container');
-        const codeEditor = document.getElementById('code-editor');
-        const runCodeBtn = document.getElementById('run-code');
-        const closeCodeBtn = document.getElementById('close-code');
-        const toast = document.getElementById('toast');
-        const menuToggle = document.querySelector('.menu-toggle');
-        const sidebar = document.querySelector('.sidebar');
+    // DOM Elements
+    const authContainer = document.getElementById('auth-container');
+    const loginForm = document.getElementById('login-form');
+    const signupForm = document.getElementById('signup-form');
+    const showSignupLink = document.getElementById('show-signup');
+    const showLoginLink = document.getElementById('show-login');
+    const chatContainer = document.getElementById('chat-container');
+    const logoutBtn = document.getElementById('logout-btn');
+    const logoutBtnHeader = document.getElementById('logout-btn-header');
+    const settingsBtn = document.getElementById('settings-btn');
+    const settingsModal = document.getElementById('settings-modal');
+    const darkModeToggle = document.getElementById('dark-mode-toggle');
+    const closeSettings = document.getElementById('close-settings');
+    const newChatBtn = document.getElementById('new-chat-btn');
+    const chatHistory = document.getElementById('chat-history');
+    const chatMessages = document.getElementById('chat-messages');
+    const chatInput = document.getElementById('chat-input');
+    const sendBtn = document.getElementById('send-btn');
+    const cancelBtn = document.getElementById('cancel-btn');
+    const userAvatar = document.getElementById('user-avatar');
+    const userRealname = document.getElementById('user-realname');
+    const userUsername = document.getElementById('user-username');
+    const modelSelect = document.getElementById('model-select');
+    const codeContainer = document.getElementById('code-container');
+    const codeEditor = document.getElementById('code-editor');
+    const runCodeBtn = document.getElementById('run-code');
+    const closeCodeBtn = document.getElementById('close-code');
+    const toast = document.getElementById('toast');
+    const menuToggle = document.querySelector('.menu-toggle');
+    const sidebar = document.querySelector('.sidebar');
 
         // Application State
         let currentUser = null;
@@ -723,6 +885,23 @@
             
             // Chat interactions
             logoutBtn.addEventListener('click', handleLogout);
+            logoutBtnHeader.addEventListener('click', handleLogout);
+            // Settings modal
+            settingsBtn.addEventListener('click', () => {
+                settingsModal.classList.add('active');
+            });
+            closeSettings.addEventListener('click', () => {
+                settingsModal.classList.remove('active');
+            });
+            darkModeToggle.addEventListener('change', (e) => {
+                if (e.target.checked) {
+                    document.body.classList.add('dark-mode');
+                    localStorage.setItem('esai-dark-mode', 'true');
+                } else {
+                    document.body.classList.remove('dark-mode');
+                    localStorage.setItem('esai-dark-mode', 'false');
+                }
+            });
             newChatBtn.addEventListener('click', createNewChat);
             sendBtn.addEventListener('click', handleSendMessage);
             cancelBtn.addEventListener('click', handleCancelResponse);
@@ -741,7 +920,13 @@
                 chatInput.style.height = 'auto';
                 chatInput.style.height = Math.min(chatInput.scrollHeight, 150) + 'px';
             });
-            
+            // Enter to send, Shift+Enter for newline
+            chatInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSendMessage();
+                }
+            });
             // Keyboard shortcuts
             document.addEventListener('keydown', (e) => {
                 // Ctrl+Enter to send message
@@ -749,13 +934,17 @@
                     e.preventDefault();
                     handleSendMessage();
                 }
-                
                 // Escape to cancel response
                 if (e.key === 'Escape' && isAIResponding) {
                     e.preventDefault();
                     handleCancelResponse();
                 }
             });
+            // Load dark mode preference
+            if (localStorage.getItem('esai-dark-mode') === 'true') {
+                document.body.classList.add('dark-mode');
+                darkModeToggle.checked = true;
+            }
         }
 
         // Initialize code editor
