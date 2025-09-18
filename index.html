@@ -10,6 +10,8 @@
                             --primary-light: #e3f0ff;
                             --primary-dark: #1d4ed8;
                             --background: #f6faff;
+                            --text: #1e293b;
+                            --text-light: #64748b;
                             --glass: rgba(255,255,255,0.7);
                             --shadow: 0 8px 32px rgba(37,99,235,0.10);
                             --bubble-user: linear-gradient(135deg, #2563eb 60%, #1d4ed8 100%);
@@ -24,21 +26,49 @@
                             --radius: 16px;
                             --transition: 0.25s cubic-bezier(.4,2,.3,1);
                         }
+                        /* Dark mode variables */
+                        :root[data-theme="dark"] {
+                            --primary: #3b82f6;
+                            --primary-light: #1e293b;
+                            --primary-dark: #60a5fa;
+                            --background: #0f172a;
+                            --text: #e2e8f0;
+                            --text-light: #94a3b8;
+                            --glass: rgba(15,23,42,0.7);
+                            --shadow: 0 8px 32px rgba(59,130,246,0.15);
+                            --bubble-user: linear-gradient(135deg, #3b82f6 60%, #2563eb 100%);
+                            --bubble-ai: #1e293b;
+                            --bubble-ai-border: 1.5px solid #2563eb;
+                            --sidebar-bg: rgba(59,130,246,0.1);
+                            --sidebar-glass: rgba(15,23,42,0.85);
+                            --input-bg: #1e293b;
+                            --input-border: 2px solid #2563eb;
+                            --code-bg: #1e293b;
+                            --code-border: 1.5px solid #2563eb;
+                        }
                         body {
                             font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
                             background: var(--background);
-                            color: #1e293b;
+                            color: var(--text);
                             margin: 0;
                             min-height: 100vh;
                             transition: background var(--transition);
                         }
-                        .container, .chat-container, .auth-container {
+                        /* Make main layout full screen */
+                        .main-layout {
+                            display: flex;
+                            width: 100vw;
+                            height: 100vh;
+                            overflow: hidden;
+                        }
+                        .container, .auth-container {
                             background: var(--glass);
                             box-shadow: var(--shadow);
                             border-radius: var(--radius);
                             padding: 2rem;
-                            margin: 2rem auto;
-                            max-width: 480px;
+                            max-width: 800px;
+                            width: 95%;
+                            margin: 1rem auto;
                             backdrop-filter: blur(8px);
                             border: 1.5px solid #e3f0ff;
                             transition: box-shadow var(--transition), background var(--transition);
@@ -58,20 +88,32 @@
                             border: none;
                             box-shadow: 0 6px 20px rgba(37,99,235,0.12);
                         }
-                        .chat-container {
+                        /* Fullscreen chat container */
+                        .main-content {
+                            flex: 1;
+                            height: 100vh;
+                            overflow: hidden;
+                            background: var(--background);
                             display: flex;
-                            gap: 2rem;
-                            max-width: 900px;
-                            min-height: 600px;
+                            flex-direction: column;
+                            padding: 0 2rem 2rem 0;
+                        }
+                        .chat-container {
+                            flex: 1;
+                            display: flex;
+                            flex-direction: column;
                             background: var(--glass);
+                            border-radius: var(--radius);
+                            overflow: hidden;
                         }
                         .sidebar {
-                            background: rgba(255,255,255,0.85);
-                            box-shadow: 0 8px 32px rgba(37,99,235,0.10);
-                            border-radius: 24px;
-                            padding: 2.5rem 1.5rem 2rem 1.5rem;
-                            min-width: 320px;
+                            background: var(--sidebar-glass);
+                            box-shadow: var(--shadow);
+                            border-radius: 0;
+                            padding: 2rem 1.5rem;
+                            width: 320px;
                             max-width: 340px;
+                            height: 100vh;
                             display: flex;
                             flex-direction: column;
                             gap: 2.5rem;
@@ -521,9 +563,9 @@
                     <div class="model-selector">
                         <label for="model-select">AI Model</label>
                         <select id="model-select">
-                            <option value="ESAI-Alpha-1">ESAI-Alpha-1</option>
-                            <option value="ESAI-Alpha-2" disabled>
-                                ESAI-Alpha-2 (In-development)
+                            <option value="gemini-pro">ESAI-Alpha-1 (Gemini Pro)</option>
+                            <option value="gemini-pro-vision" disabled>
+                                ESAI-Alpha-2 (Vision - In-development)
                             </option>
                         </select>
                     </div>
@@ -724,10 +766,10 @@
             });
             darkModeToggle.addEventListener('change', (e) => {
                 if (e.target.checked) {
-                    document.body.classList.add('dark-mode');
+                    document.documentElement.setAttribute('data-theme', 'dark');
                     localStorage.setItem('esai-dark-mode', 'true');
                 } else {
-                    document.body.classList.remove('dark-mode');
+                    document.documentElement.setAttribute('data-theme', 'light');
                     localStorage.setItem('esai-dark-mode', 'false');
                 }
             });
@@ -771,7 +813,7 @@
             });
             // Load dark mode preference
             if (localStorage.getItem('esai-dark-mode') === 'true') {
-                document.body.classList.add('dark-mode');
+                document.documentElement.setAttribute('data-theme', 'dark');
                 darkModeToggle.checked = true;
             }
         }
