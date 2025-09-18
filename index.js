@@ -51,28 +51,47 @@ app.post('/api/login', (req, res) => {
 
 // Gemini API endpoint
 app.post('/api/gemini', async (req, res) => {
-	const { message } = req.body;
-	const GEMINI_API_KEY = process.env.GEMINI_API_KEY || 'AIzaSyCVqKHmBKSuHjy0uaZ5UJTzbBX66sfafWo';
-	try {
-		const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-2.0:generateContent?key=${GEMINI_API_KEY}`, {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({
-				contents: [{ role: 'user', parts: [{ text: message }] }],
-				generationConfig: { temperature: 0.7 }
-			})
-		});
-		const geminiData = await geminiRes.json();
+		const { message, model } = req.body;
+		const GEMINI_API_KEY = process.env.GEMINI_API_KEY || 'AIzaSyCVqKHmBKSuHjy0uaZ5UJTzbBX66sfafWo';
+		// Default to gemini-pro for v1beta, fallback to gemini-pro:generateContent for v1
+		const modelName = model || 'gemini-pro';
+		let endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${GEMINI_API_KEY}`;
+		// If v1beta fails, try v1 endpoint
 		let reply = '';
-		if (geminiData && geminiData.candidates && geminiData.candidates[0] && geminiData.candidates[0].content && geminiData.candidates[0].content.parts && geminiData.candidates[0].content.parts[0].text) {
-			reply = geminiData.candidates[0].content.parts[0].text;
-		} else {
-			reply = 'Sorry, no response from Gemini.';
+		try {
+			let geminiRes = await fetch(endpoint, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					contents: [{ role: 'user', parts: [{ text: message }] }],
+					generationConfig: { temperature: 0.7 }
+				})
+			});
+			let geminiData = await geminiRes.json();
+			if (!geminiRes.ok || geminiData.error) {
+				// Try v1 endpoint if v1beta fails
+				endpoint = `https://generativelanguage.googleapis.com/v1/models/${modelName}:generateContent?key=${GEMINI_API_KEY}`;
+				geminiRes = await fetch(endpoint, {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({
+						contents: [{ parts: [{ text: message }] }],
+						generationConfig: { temperature: 0.7 }
+					})
+				});
+				geminiData = await geminiRes.json();
+			}
+			if (geminiData && geminiData.candidates && geminiData.candidates[0] && geminiData.candidates[0].content && geminiData.candidates[0].content.parts && geminiData.candidates[0].content.parts[0].text) {
+				reply = geminiData.candidates[0].content.parts[0].text;
+			} else if (geminiData.error) {
+				reply = `Gemini API error: ${geminiData.error.message}`;
+			} else {
+				reply = 'Sorry, no response from Gemini.';
+			}
+			res.json({ reply });
+		} catch (e) {
+			res.json({ reply: 'Error contacting Gemini API.' });
 		}
-		res.json({ reply });
-	} catch (e) {
-		res.json({ reply: 'Error contacting Gemini API.' });
-	}
 });
 
 // Vercel serverless export
