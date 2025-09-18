@@ -33,9 +33,10 @@ app.post('/api/signup', (req, res) => {
 	if (data.users.find(u => u.username === username)) {
 		return res.json({ success: false, error: 'Username already exists.' });
 	}
-	data.users.push({ name, username, password });
+	const newUser = { name, username, password };
+	data.users.push(newUser);
 	writeData(data);
-	res.json({ success: true });
+	res.json({ success: true, user: { name, username } });
 });
 
 // Login endpoint
@@ -46,7 +47,7 @@ app.post('/api/login', (req, res) => {
 	if (!user) {
 		return res.json({ success: false, error: 'Invalid credentials.' });
 	}
-	res.json({ success: true });
+	res.json({ success: true, user: { name: user.name, username: user.username } });
 });
 
 // Gemini API endpoint
