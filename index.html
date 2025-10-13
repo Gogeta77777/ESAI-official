@@ -539,7 +539,14 @@
                     </style>
 
 
-</head>
+        <!-- External assets: FontAwesome for icons and CodeMirror for code editor -->
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-pzw9Xo1b2yQKf0v2h2k5Jx2b6QJ2c6gKqj1Q4YxgY6uZk5Z6g5K1V5m7a8u9nK8Q==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css" integrity="sha512-0" crossorigin="anonymous" referrerpolicy="no-referrer" />
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js" integrity="sha512-0" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/javascript/javascript.min.js" integrity="sha512-0" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/edit/matchbrackets.min.js" integrity="sha512-0" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/edit/closebrackets.min.js" integrity="sha512-0" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    </head>
 <body>
         <!-- Modern Sidebar Layout -->
         <div class="main-layout">
@@ -550,10 +557,10 @@
                     <span class="made-by">Made by ESAI</span>
                 </div>
                 <div class="user-info">
-                    <div class="user-avatar" id="user-avatar">JD</div>
+                    <div class="user-avatar" id="user-avatar">U</div>
                     <div class="user-details">
-                        <h3 id="user-realname">John Doe</h3>
-                        <p id="user-username">@johndoe</p>
+                        <h3 id="user-realname">Guest</h3>
+                        <p id="user-username">@guest</p>
                     </div>
                 </div>
                 <div class="sidebar-controls">
@@ -599,7 +606,7 @@
                             </button>
                         </div>
                     </div>
-                    <div class="code-container" id="code-container">
+                    <div class="code-container" id="code-container" style="display:none;">
                         <div class="code-header">
                             <h3>Code Editor</h3>
                             <div class="code-actions">
