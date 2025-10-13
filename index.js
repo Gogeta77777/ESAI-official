@@ -53,7 +53,11 @@ app.post('/api/login', (req, res) => {
 // Gemini API endpoint
 app.post('/api/gemini', async (req, res) => {
 		const { message, model } = req.body;
-		const GEMINI_API_KEY = process.env.GEMINI_API_KEY || 'AIzaSyCVqKHmBKSuHjy0uaZ5UJTzbBX66sfafWo';
+		const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+		if (!GEMINI_API_KEY) {
+			// Return a helpful error for local development rather than exposing a key
+			return res.status(500).json({ error: 'GEMINI_API_KEY not configured on server. Set process.env.GEMINI_API_KEY.' });
+		}
 		// Default to gemini-pro for v1beta, fallback to gemini-pro:generateContent for v1
 		const modelName = model || 'gemini-pro';
 		let endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${GEMINI_API_KEY}`;
@@ -95,5 +99,13 @@ app.post('/api/gemini', async (req, res) => {
 		}
 });
 
-// Vercel serverless export
-module.exports = app;
+// If run directly (local development), start listening on a port
+if (require.main === module) {
+	const PORT = process.env.PORT || 3000;
+	app.listen(PORT, () => {
+		console.log(`ESAI server running on http://localhost:${PORT}`);
+	});
+} else {
+	// Vercel/serverless export
+	module.exports = app;
+}
