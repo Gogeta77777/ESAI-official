@@ -4,7 +4,7 @@
                     <meta charset="UTF-8">
                     <meta name="viewport" content="width=device-width, initial-scale=1.0">
                     <title>Ellerslie School AI</title>
-                    <style>
+                    
                         :root {
                             --primary: #2563eb;
                             --primary-light: #e3f0ff;
@@ -707,6 +707,7 @@
     <main>
         <!-- Authentication Section -->
         <div class="auth-container" id="auth-container">
+            <div class="auth-card">
             <!-- Login Form -->
             <form class="auth-form" id="login-form">
                 <h2>Login to ESAI</h2>
@@ -748,6 +749,7 @@
                     Already have an account? <a href="#" id="show-login">Login</a>
                 </div>
             </form>
+            </div>
         </div>
     </main>
 
@@ -806,33 +808,33 @@
         // Set up event listeners
         function setupEventListeners() {
             // Auth form toggling
-            showSignupLink.addEventListener('click', (e) => {
+            if (showSignupLink) showSignupLink.addEventListener('click', (e) => {
                 e.preventDefault();
-                loginForm.style.display = 'none';
-                signupForm.style.display = 'block';
+                if (loginForm) loginForm.style.display = 'none';
+                if (signupForm) signupForm.style.display = 'block';
             });
 
-            showLoginLink.addEventListener('click', (e) => {
+            if (showLoginLink) showLoginLink.addEventListener('click', (e) => {
                 e.preventDefault();
-                signupForm.style.display = 'none';
-                loginForm.style.display = 'block';
+                if (signupForm) signupForm.style.display = 'none';
+                if (loginForm) loginForm.style.display = 'block';
             });
 
             // Form submissions
-            loginForm.addEventListener('submit', handleLogin);
-            signupForm.addEventListener('submit', handleSignup);
+            if (loginForm) loginForm.addEventListener('submit', handleLogin);
+            if (signupForm) signupForm.addEventListener('submit', handleSignup);
             
             // Chat interactions
-            logoutBtn.addEventListener('click', handleLogout);
+            if (logoutBtn) logoutBtn.addEventListener('click', handleLogout);
             if (logoutBtnHeader) logoutBtnHeader.addEventListener('click', handleLogout);
             // Settings modal
-            settingsBtn.addEventListener('click', () => {
-                settingsModal.classList.add('active');
+            if (settingsBtn) settingsBtn.addEventListener('click', () => {
+                if (settingsModal) settingsModal.classList.add('active');
             });
-            closeSettings.addEventListener('click', () => {
-                settingsModal.classList.remove('active');
+            if (closeSettings) closeSettings.addEventListener('click', () => {
+                if (settingsModal) settingsModal.classList.remove('active');
             });
-            darkModeToggle.addEventListener('change', (e) => {
+            if (darkModeToggle) darkModeToggle.addEventListener('change', (e) => {
                 if (e.target.checked) {
                     document.documentElement.setAttribute('data-theme', 'dark');
                     localStorage.setItem('esai-dark-mode', 'true');
@@ -841,24 +843,33 @@
                     localStorage.setItem('esai-dark-mode', 'false');
                 }
             });
-            newChatBtn.addEventListener('click', createNewChat);
-            sendBtn.addEventListener('click', handleSendMessage);
-            cancelBtn.addEventListener('click', handleCancelResponse);
+            if (newChatBtn) newChatBtn.addEventListener('click', createNewChat);
+            if (sendBtn) sendBtn.addEventListener('click', handleSendMessage);
+            if (cancelBtn) cancelBtn.addEventListener('click', handleCancelResponse);
             
             // Code editor
             if (runCodeBtn) runCodeBtn.addEventListener('click', handleRunCode);
             if (closeCodeBtn) closeCodeBtn.addEventListener('click', handleCloseCode);
             
             // Menu toggle for mobile
-            if (menuToggle) menuToggle.addEventListener('click', () => {
+            if (menuToggle && sidebar) menuToggle.addEventListener('click', () => {
                 sidebar.classList.toggle('active');
             });
             
             // Auto-resize textarea
-            chatInput.addEventListener('input', () => {
-                chatInput.style.height = 'auto';
-                chatInput.style.height = Math.min(chatInput.scrollHeight, 150) + 'px';
-            });
+            if (chatInput) {
+                chatInput.addEventListener('input', () => {
+                    chatInput.style.height = 'auto';
+                    chatInput.style.height = Math.min(chatInput.scrollHeight, 150) + 'px';
+                });
+                // Enter to send, Shift+Enter for newline
+                chatInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSendMessage();
+                    }
+                });
+            }
             // Enter to send, Shift+Enter for newline
             chatInput.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
@@ -866,19 +877,21 @@
                     handleSendMessage();
                 }
             });
-            // Keyboard shortcuts
-            document.addEventListener('keydown', (e) => {
-                // Ctrl+Enter to send message
-                if (e.ctrlKey && e.key === 'Enter') {
-                    e.preventDefault();
-                    handleSendMessage();
-                }
-                // Escape to cancel response
-                if (e.key === 'Escape' && isAIResponding) {
-                    e.preventDefault();
-                    handleCancelResponse();
-                }
-            });
+            // Keyboard shortcuts (only active if chat input exists)
+            if (chatInput) {
+                document.addEventListener('keydown', (e) => {
+                    // Ctrl+Enter to send message
+                    if (e.ctrlKey && e.key === 'Enter') {
+                        e.preventDefault();
+                        handleSendMessage();
+                    }
+                    // Escape to cancel response
+                    if (e.key === 'Escape' && isAIResponding) {
+                        e.preventDefault();
+                        handleCancelResponse();
+                    }
+                });
+            }
             // Load dark mode preference
             if (localStorage.getItem('esai-dark-mode') === 'true') {
                 document.documentElement.setAttribute('data-theme', 'dark');
