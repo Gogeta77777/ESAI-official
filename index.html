@@ -536,9 +536,74 @@
                         .model-selector option {
                             padding: 0.5rem;
                         }
+                    <style>
+                        /* Clean, modern base styles to replace the previous noisy layout */
+                        :root{
+                            --bg:#f4f7fb;
+                            --card:#ffffff;
+                            --muted:#6b7280;
+                            --accent:#2563eb;
+                            --accent-600:#1e40af;
+                            --sidebar-bg:rgba(255,255,255,0.85);
+                            --glass-shadow: 0 6px 30px rgba(16,24,40,0.06);
+                        }
+                        html,body{height:100%;}
+                        body{
+                            margin:0;
+                            font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+                            background: linear-gradient(180deg,var(--bg),#eef6ff 40%);
+                            color:#0f172a;
+                            -webkit-font-smoothing:antialiased;
+                            -moz-osx-font-smoothing:grayscale;
+                        }
+                        .main-layout{
+                            display:grid;
+                            grid-template-columns: 280px 1fr;
+                            gap:0;
+                            min-height:100vh;
+                        }
+                        /* Sidebar */
+                        .sidebar{
+                            background: var(--sidebar-bg);
+                            padding:28px 20px;
+                            border-right:1px solid rgba(15,23,42,0.04);
+                            box-shadow: var(--glass-shadow);
+                            position:relative;
+                        }
+                        .sidebar .brand{font-weight:700;color:var(--accent);margin-bottom:18px}
+                        .sidebar .user-info{display:flex;align-items:center;gap:12px}
+                        .avatar{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent-600));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700}
+                        .user-info h3{margin:0;font-size:16px}
+                        .user-info p{margin:0;color:var(--muted);font-size:13px}
+                        .sidebar button{margin-top:14px}
+
+                        /* Main content */
+                        .main-content{
+                            padding:36px 48px;
+                            display:flex;
+                            align-items:flex-start;
+                            justify-content:center;
+                        }
+                        /* Auth card centered */
+                        .auth-container{width:100%;display:flex;align-items:center;justify-content:center;min-height:calc(100vh - 80px)}
+                        .auth-card{background:var(--card);padding:32px;border-radius:12px;max-width:760px;width:100%;box-shadow:var(--glass-shadow);}
+                        .auth-card h2{margin-top:0}
+                        .form-row{margin:12px 0}
+                        input[type="text"],input[type="password"]{width:100%;padding:8px 10px;border:1px solid rgba(15,23,42,0.06);border-radius:6px}
+                        .btn{background:var(--accent);color:#fff;padding:8px 14px;border-radius:8px;border:none;cursor:pointer}
+                        .btn.secondary{background:#fff;color:var(--accent);border:1px solid rgba(15,23,42,0.06)}
+
+                        /* Chat / code container tweaks */
+                        .code-container{position:fixed;right:28px;bottom:28px;width:520px;max-width:92vw;background:var(--card);border-radius:10px;box-shadow:var(--glass-shadow);overflow:hidden}
+                        .code-container.hidden{display:none}
+
+                        /* Responsive adjustments */
+                        @media (max-width:900px){
+                            .main-layout{grid-template-columns:1fr}
+                            .sidebar{position:relative;width:100%;border-right:none;border-bottom:1px solid rgba(15,23,42,0.04)}
+                            .main-content{padding:20px}
+                        }
                     </style>
-
-
         <!-- External assets: FontAwesome for icons and CodeMirror for code editor -->
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-pzw9Xo1b2yQKf0v2h2k5Jx2b6QJ2c6gKqj1Q4YxgY6uZk5Z6g5K1V5m7a8u9nK8Q==" crossorigin="anonymous" referrerpolicy="no-referrer" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css" integrity="sha512-0" crossorigin="anonymous" referrerpolicy="no-referrer" />
@@ -551,28 +616,24 @@
         <!-- Modern Sidebar Layout -->
         <div class="main-layout">
             <aside class="sidebar">
-                <div class="logo-section">
-                    <div class="logo">ES</div>
-                    <div class="brand-name">Ellerslie School AI</div>
-                    <span class="made-by">Made by ESAI</span>
-                </div>
+                <div class="brand">ES<br/>Ellerslie School AI</div>
                 <div class="user-info">
-                    <div class="user-avatar" id="user-avatar">U</div>
-                    <div class="user-details">
+                    <div class="avatar" id="user-avatar">U</div>
+                    <div>
                         <h3 id="user-realname">Guest</h3>
                         <p id="user-username">@guest</p>
                     </div>
                 </div>
                 <div class="sidebar-controls">
-                    <button class="new-chat-btn" id="new-chat-btn">
-                        <i class="fas fa-plus"></i> New Chat
-                    </button>
-                    <div class="model-selector">
-                        <label for="model-select">AI Model</label>
-                        <select id="model-select">
-                            <option value="gemini-pro">ESAI-Alpha-1 (Gemini Pro)</option>
-                            <option value="gemini-pro-vision" disabled>
-                                ESAI-Alpha-2 (Vision - In-development)
+                    <button id="new-chat-btn" class="btn secondary">New Chat</button>
+                    <div style="margin-top:18px">
+                        <label style="display:block;font-weight:600;color:var(--muted);margin-bottom:6px">AI Model</label>
+                        <div style="background:#f8fafc;border-radius:8px;padding:10px;color:#0f172a">ESAI-Alpha-1 (Gemini Pro)</div>
+                    </div>
+                    <div style="margin-top:18px">
+                        <button id="settings-btn" class="btn secondary">Settings</button>
+                        <button id="logout-btn" class="btn secondary" style="margin-left:8px">Log Out</button>
+                    </div>
                             </option>
                         </select>
                     </div>
@@ -583,7 +644,7 @@
                         <i class="fas fa-sign-out-alt"></i> Log Out
                     </button>
                 </div>
-                <div class="chat-history" id="chat-history"></div>
+                    <div class="chat-history" id="chat-history"></div>
             </aside>
             <main class="main-content">
                 <div class="chat-container" id="chat-container">
@@ -606,7 +667,7 @@
                             </button>
                         </div>
                     </div>
-                    <div class="code-container" id="code-container" style="display:none;">
+                    <div class="code-container hidden" id="code-container">
                         <div class="code-header">
                             <h3>Code Editor</h3>
                             <div class="code-actions">
