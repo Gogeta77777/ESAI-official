@@ -52,16 +52,20 @@ app.post('/api/login', (req, res) => {
 
 // Gemini API endpoint
 app.post('/api/gemini', async (req, res) => {
-		const { message, model } = req.body;
+		const { message, model } = req.body || {};
 		const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+
+		// If no API key is configured, return a helpful local fallback so the app remains usable in dev
 		if (!GEMINI_API_KEY) {
-			// Return a helpful error for local development rather than exposing a key
-			return res.status(500).json({ error: 'GEMINI_API_KEY not configured on server. Set process.env.GEMINI_API_KEY.' });
+			const fallback = `ESAI-Alpha-1 (local fallback): I don't have a configured Gemini API key in this environment. However, I can still help with general answers, examples, and explanations.
+\n\nYou asked: "${(message||'').toString().slice(0,200)}"
+\nResponse: Here's a helpful local response — try this prompt with a real API key for a full AI answer.`;
+			return res.json({ reply: fallback });
 		}
+
 		// Default to gemini-pro for v1beta, fallback to gemini-pro:generateContent for v1
 		const modelName = model || 'gemini-pro';
 		let endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${GEMINI_API_KEY}`;
-		// If v1beta fails, try v1 endpoint
 		let reply = '';
 		try {
 			let geminiRes = await fetch(endpoint, {
@@ -88,14 +92,15 @@ app.post('/api/gemini', async (req, res) => {
 			}
 			if (geminiData && geminiData.candidates && geminiData.candidates[0] && geminiData.candidates[0].content && geminiData.candidates[0].content.parts && geminiData.candidates[0].content.parts[0].text) {
 				reply = geminiData.candidates[0].content.parts[0].text;
-			} else if (geminiData.error) {
+			} else if (geminiData && geminiData.error) {
 				reply = `Gemini API error: ${geminiData.error.message}`;
 			} else {
 				reply = 'Sorry, no response from Gemini.';
 			}
 			res.json({ reply });
 		} catch (e) {
-			res.json({ reply: 'Error contacting Gemini API.' });
+			console.error('Gemini request failed:', e && e.message);
+			res.status(502).json({ error: 'Error contacting Gemini API.' });
 		}
 });
 
