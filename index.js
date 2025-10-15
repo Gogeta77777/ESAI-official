@@ -57,15 +57,22 @@ app.post('/api/gemini', async (req, res) => {
 
 		// If no API key is configured, return a helpful local fallback so the app remains usable in dev
 		if (!GEMINI_API_KEY) {
-			const fallback = `ESAI-Alpha-1 (local fallback): I don't have a configured Gemini API key in this environment. However, I can still help with general answers, examples, and explanations.
+			const modelName = model === 'esai-1' ? 'ESAI-1' : 'ESAI-1.1';
+			const fallback = `${modelName} (local fallback): I don't have a configured Gemini API key in this environment. However, I can still help with general answers, examples, and explanations.
 \n\nYou asked: "${(message||'').toString().slice(0,200)}"
 \nResponse: Here's a helpful local response — try this prompt with a real API key for a full AI answer.`;
 			return res.json({ reply: fallback });
 		}
 
-		// Default to gemini-pro for v1beta, fallback to gemini-pro:generateContent for v1
-		const modelName = model || 'gemini-pro';
-		let endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${GEMINI_API_KEY}`;
+		// Map ESAI model names to Gemini models
+		let geminiModel = 'gemini-pro';
+		if (model === 'esai-1.1') {
+			geminiModel = 'gemini-pro';
+		} else if (model === 'esai-1') {
+			geminiModel = 'gemini-pro';
+		}
+		
+		let endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${GEMINI_API_KEY}`;
 		let reply = '';
 		try {
 			let geminiRes = await fetch(endpoint, {
@@ -79,7 +86,7 @@ app.post('/api/gemini', async (req, res) => {
 			let geminiData = await geminiRes.json();
 			if (!geminiRes.ok || geminiData.error) {
 				// Try v1 endpoint if v1beta fails
-				endpoint = `https://generativelanguage.googleapis.com/v1/models/${modelName}:generateContent?key=${GEMINI_API_KEY}`;
+				endpoint = `https://generativelanguage.googleapis.com/v1/models/${geminiModel}:generateContent?key=${GEMINI_API_KEY}`;
 				geminiRes = await fetch(endpoint, {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
