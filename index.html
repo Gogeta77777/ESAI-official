@@ -627,7 +627,10 @@
                     <button id="new-chat-btn" class="btn secondary">New Chat</button>
                     <div style="margin-top:18px">
                         <label style="display:block;font-weight:600;color:var(--muted);margin-bottom:6px">AI Model</label>
-                        <div style="background:#f8fafc;border-radius:8px;padding:10px;color:#0f172a">ESAI-Alpha-1 (Gemini Pro)</div>
+                        <select id="model-select" style="width:100%;padding:8px 10px;border:1px solid rgba(15,23,42,0.06);border-radius:6px;background:#f8fafc;color:#0f172a">
+                            <option value="esai-1.1" selected>ESAI-1.1 (Active)</option>
+                            <option value="esai-1">ESAI-1 (Outdated)</option>
+                        </select>
                     </div>
                     <div style="margin-top:18px">
                         <button id="settings-btn" class="btn secondary">Settings</button>
@@ -641,8 +644,8 @@
                     <div class="chat-main">
                         <div class="chat-header">
                             <i class="fas fa-robot" style="color: var(--primary);"></i>
-                            <h3>ESAI-Alpha-1</h3>
-                            <span class="model-badge">Active</span>
+                            <h3 id="current-model-name">ESAI-1.1</h3>
+                            <span class="model-badge" id="current-model-status">Active</span>
                         </div>
                         <div class="chat-messages" id="chat-messages"></div>
                         <div class="chat-input-container">
@@ -887,6 +890,11 @@
                 document.documentElement.setAttribute('data-theme', 'dark');
                 darkModeToggle.checked = true;
             }
+            
+            // Model selector change handler
+            if (modelSelect) {
+                modelSelect.addEventListener('change', updateModelDisplay);
+            }
         }
 
         // Initialize code editor
@@ -1123,10 +1131,10 @@
                 welcomeMsg.innerHTML = `
                     <div class="message-header">
                         <i class="fas fa-robot"></i>
-                        <span>ESAI-Alpha-1</span>
+                        <span id="welcome-model-name">ESAI-1.1</span>
                     </div>
                     <div class="message-content">
-                        <p>Hello! I'm ESAI-Alpha-1, the first AI model from Ellerslie School AI. I'm here to assist you with any questions you might have. How can I help you today?</p>
+                        <p>Hello! I'm ESAI-1.1, the latest AI model from Ellerslie School AI. I'm here to assist you with any questions you might have. How can I help you today?</p>
                     </div>
                 `;
                 chatMessages.appendChild(welcomeMsg);
@@ -1151,7 +1159,7 @@
                     messageEl.innerHTML = `
                         <div class="message-header">
                             <i class="fas fa-robot"></i>
-                            <span>ESAI-Alpha-1</span>
+                            <span>${getCurrentModelName()}</span>
                         </div>
                         <div class="message-content">
                             ${formatMessage(msg.content)}
@@ -1254,13 +1262,14 @@
             
             try {
                 // Prepare the prompt with ESAI personality
-                const prompt = `You are ESAI-Alpha-1, an AI assistant created by Ellerslie School AI. 
-You are helpful, friendly, and knowledgeable. You always identify yourself as ESAI-Alpha-1 in your responses.
+                const currentModel = getCurrentModelName();
+                const prompt = `You are ${currentModel}, an AI assistant created by Ellerslie School AI. 
+You are helpful, friendly, and knowledgeable. You always identify yourself as ${currentModel} in your responses.
 You are particularly good at explaining concepts and helping with programming questions.
 
 User: ${userMessage}
 
-ESAI-Alpha-1:`;
+${currentModel}:`;
                 
                 // Call backend Gemini endpoint
                 const modelChoice = modelSelect?.value || 'gemini-pro';
@@ -1338,7 +1347,7 @@ ESAI-Alpha-1:`;
                     cancelledMsg.innerHTML = `
                         <div class="message-header">
                             <i class="fas fa-robot"></i>
-                            <span>ESAI-Alpha-1</span>
+                            <span>${getCurrentModelName()}</span>
                         </div>
                         <div class="message-content">
                             <p>Response cancelled.</p>
@@ -1354,7 +1363,7 @@ ESAI-Alpha-1:`;
                     errorMsg.innerHTML = `
                         <div class="message-header">
                             <i class="fas fa-robot"></i>
-                            <span>ESAI-Alpha-1</span>
+                            <span>${getCurrentModelName()}</span>
                         </div>
                         <div class="message-content">
                             <p>Sorry, I encountered an error: ${error.message}. Please try again.</p>
@@ -1375,7 +1384,7 @@ ESAI-Alpha-1:`;
             messageEl.innerHTML = `
                 <div class="message-header">
                     <i class="fas fa-robot"></i>
-                    <span>ESAI-Alpha-1</span>
+                    <span>${getCurrentModelName()}</span>
                 </div>
                 <div class="message-content">
                     <p></p>
@@ -1432,6 +1441,47 @@ ESAI-Alpha-1:`;
             const allChats = JSON.parse(localStorage.getItem('chats') || '{}');
             allChats[currentUser.username] = chats;
             localStorage.setItem('chats', JSON.stringify(allChats));
+        }
+
+        // Get current model name based on selection
+        function getCurrentModelName() {
+            const modelSelect = document.getElementById('model-select');
+            if (modelSelect) {
+                const selectedValue = modelSelect.value;
+                if (selectedValue === 'esai-1.1') {
+                    return 'ESAI-1.1';
+                } else if (selectedValue === 'esai-1') {
+                    return 'ESAI-1';
+                }
+            }
+            return 'ESAI-1.1'; // Default fallback
+        }
+
+        // Update model display when selection changes
+        function updateModelDisplay() {
+            const modelSelect = document.getElementById('model-select');
+            const modelNameEl = document.getElementById('current-model-name');
+            const modelStatusEl = document.getElementById('current-model-status');
+            const welcomeModelNameEl = document.getElementById('welcome-model-name');
+            
+            if (modelSelect && modelNameEl && modelStatusEl) {
+                const selectedValue = modelSelect.value;
+                if (selectedValue === 'esai-1.1') {
+                    modelNameEl.textContent = 'ESAI-1.1';
+                    modelStatusEl.textContent = 'Active';
+                    modelStatusEl.style.background = 'var(--primary-light)';
+                    modelStatusEl.style.color = 'var(--primary-dark)';
+                } else if (selectedValue === 'esai-1') {
+                    modelNameEl.textContent = 'ESAI-1';
+                    modelStatusEl.textContent = 'Outdated';
+                    modelStatusEl.style.background = '#fef3c7';
+                    modelStatusEl.style.color = '#d97706';
+                }
+                
+                if (welcomeModelNameEl) {
+                    welcomeModelNameEl.textContent = getCurrentModelName();
+                }
+            }
         }
 
         // Initialize the application
